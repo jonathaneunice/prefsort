@@ -7,5 +7,6 @@ python:
  - "pypy3.5"
 install:
  - python setup.py install
+ - python setup.py test 
 script: py.test --assert=plain
 
