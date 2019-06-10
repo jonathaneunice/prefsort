@@ -37,13 +37,3 @@ Note that this doesn't sort the majority of the sequence in
 the way Python's normal ``list.sort()`` or ``sorted()`` do.
 It just pulls the preferred members to the front of the list.
 
-
-
-* Free software: Apache Software License 2.0
-* Documentation: https://prefsort.readthedocs.io.
-
-
-Features
---------
-
-* TODO
