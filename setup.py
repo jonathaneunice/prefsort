@@ -7,12 +7,6 @@ from codecs import open
 with open('README.rst', encoding='utf-8') as readme_file:
     readme = readme_file.read()
 
-test_requirements = [
-    'tox',
-    'pytest',
-    'coverage',
-    'pytest-cov'
-]
 
 setup(
     name='prefsort',
@@ -25,15 +19,14 @@ setup(
     packages=[
         'prefsort',
     ],
-    package_dir={'prefsort':
-                 'prefsort'},
+    package_dir={'prefsort': 'prefsort'},
     include_package_data=True,
     install_requires=[],
     license="Apache Software License 2.0",
     zip_safe=False,
     keywords='prefsort',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3.6',
@@ -44,5 +37,5 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     test_suite='test',
-    tests_require=test_requirements
+    tests_require=open('requirements_dev.txt').read().splitlines()
 )
