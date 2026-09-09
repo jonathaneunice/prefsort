@@ -1,51 +1,73 @@
-========
 prefsort
 ========
 
+|PyPI| |Python| |CI|
 
-.. image:: https://img.shields.io/pypi/v/prefsort.svg
-        :target: https://pypi.python.org/pypi/prefsort
+Partially sort an iterable by moving preferred values to the front or back while preserving the order of
+everything else. Requires Python 3.11 or later.
 
-.. image:: https://img.shields.io/travis/jonathaneunice/prefsort.svg
-        :target: https://travis-ci.org/jonathaneunice/prefsort
+Installation
+------------
 
-.. image:: https://readthedocs.org/projects/prefsort/badge/?version=latest
-        :target: https://prefsort.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
+.. code-block:: console
 
-.. image:: https://pyup.io/repos/github/jonathaneunice/prefsort/shield.svg
-     :target: https://pyup.io/repos/github/jonathaneunice/prefsort/
-     :alt: Updates
+    python -m pip install prefsort
 
-
-Partially sort a sequence, preferring some values.
+Usage
+-----
 
 .. code-block:: python
 
     from prefsort import prefsorted
 
-    seq = list('abcde')
+    values = list("abcde")
 
-    seq2 = prefsorted(seq, 'c b')
-    assert seq2 == ['c', 'b', 'a', 'd', 'e']
+    result = prefsorted(values, "c b")
+    assert result == ["c", "b", "a", "d", "e"]
 
-Note that this doesn't sort the majority of the sequence in
-the way Python's normal ``list.sort()`` or ``sorted()`` do.
-It just pulls the preferred members to the front of the list.
+Unlike ``sorted``, ``prefsorted`` does not reorder non-preferred values. Every occurrence of a
+preferred value is moved, and preferred values that are absent are ignored. The input is not mutated.
 
-This is particularly handy to have when organizing data columns,
-for example with ``pandas``, the following will make sure the
-id and name columns come first in a DataFrame:
+The string shorthand splits preferences on whitespace. Any other iterable can supply preferences directly:
 
 .. code-block:: python
 
-    df = df.reindex(columns=prefsorted(df.columns, 'id name'))
+    assert prefsorted(values, ["c", "b"]) == ["c", "b", "a", "d", "e"]
 
-There is also a ``reverse`` parameter that will put the "preferred"
-items at the end of the list. In this case it's a "negative
-preference."
+Pass ``reverse=True`` to move preferred values to the end:
 
 .. code-block:: python
 
-    seq2 = prefsorted(seq, 'c b', reverse=True)
-    assert seq2 == ['a', 'd', 'e', 'c', 'b']
+    result = prefsorted(values, "c b", reverse=True)
+    assert result == ["a", "d", "e", "c", "b"]
+
+This is useful for ordering columns in dataframe-like objects without making pandas a runtime dependency:
+
+.. code-block:: python
+
+    df = df.reindex(columns=prefsorted(df.columns, "id name"))
+
+Development
+-----------
+
+Create and activate a virtual environment, then install the development dependency group:
+
+.. code-block:: console
+
+    make install
+    make check
+
+Use ``make format`` to apply Ruff lint fixes and Black-style formatting. The complete command set is
+documented by ``make help``.
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/prefsort.svg
+   :target: https://pypi.org/project/prefsort/
+   :alt: PyPI version
+
+.. |Python| image:: https://img.shields.io/pypi/pyversions/prefsort.svg
+   :target: https://pypi.org/project/prefsort/
+   :alt: Supported Python versions
+
+.. |CI| image:: https://github.com/jonathaneunice/prefsort/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/jonathaneunice/prefsort/actions/workflows/ci.yml
+   :alt: Continuous integration
