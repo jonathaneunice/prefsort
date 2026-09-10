@@ -1,8 +1,6 @@
 """Public interface for :mod:`prefsort`."""
 
-from .core import prefsorted as prefsorted
+from .core import prefsorted
+from .version import __version__
 
-__all__ = ["prefsorted"]
-__author__ = "Jonathan Eunice"
-__email__ = "jonathan.eunice@gmail.com"
-__version__ = "0.2.0"
+__all__ = ["__version__", "prefsorted"]

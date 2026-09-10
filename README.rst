@@ -74,26 +74,6 @@ Create and activate a virtual environment, then install the development dependen
 Use ``make format`` to apply Ruff lint fixes and Black-style formatting. The complete command set is
 documented by ``make help``.
 
-Releasing
----------
-
-Store a project-scoped PyPI token once, in the OS keyring rather than in a file:
-
-.. code-block:: console
-
-    python3 -m keyring set https://upload.pypi.org/legacy/ __token__
-
-To release, bump ``__version__``, date the release in ``CHANGELOG.md``, commit, tag, and upload:
-
-.. code-block:: console
-
-    git tag v0.2.0
-    make publish
-
-``make publish`` refuses to run unless lint, tests, and a clean working tree all pass, and it rebuilds
-``dist/`` from scratch so stale artifacts cannot be uploaded. Use ``make publish-test`` to rehearse
-against TestPyPI, which needs its own token stored under ``https://test.pypi.org/legacy/``.
-
 .. |PyPI| image:: https://img.shields.io/pypi/v/prefsort.svg
    :target: https://pypi.org/project/prefsort/
    :alt: PyPI version
