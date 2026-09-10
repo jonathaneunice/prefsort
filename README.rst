@@ -57,6 +57,10 @@ This is useful for ordering columns in dataframe-like objects without making pan
 
     df = df.reindex(columns=prefsorted(df.columns, "id name"))
 
+``prefsorted`` is a convenience function: simple and exact about preference
+order, not tuned for large inputs. A few dozen items (DataFrame columns, for
+example) is the intended scale.
+
 Development
 -----------
 
