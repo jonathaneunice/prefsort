@@ -15,10 +15,11 @@ def prefsorted(
     Partially reorder *seq* by moving preferred values to the front (or back).
 
     Preferred items appear in *preferred* order, grouped together. Every
-    occurrence of a preferred value is moved. Non-preferred values keep their
-    relative input order. Missing preferred values are ignored, and a value
-    listed more than once in *preferred* is a no-op after the first listing.
-    The input iterable is not mutated.
+    occurrence of a preferred value is moved; matching is by equality, and the
+    values returned are the ones from *seq*, not the ones listed in *preferred*.
+    Non-preferred values keep their relative input order. Missing preferred
+    values are ignored, and a value listed more than once in *preferred* is a
+    no-op after the first listing. The input iterable is not mutated.
 
     A string *preferred* is split on whitespace. Use that shorthand when items
     are strings that do not themselves contain spaces; otherwise pass an
@@ -52,11 +53,11 @@ def prefsorted(
     taken: list[T] = []
     rest = list(seq)
     for item in preferred_items:
-        try:
-            while True:
-                rest.remove(item)
-                taken.append(item)
-        except ValueError:
-            pass
+        while True:
+            try:
+                index = rest.index(item)
+            except ValueError:
+                break
+            taken.append(rest.pop(index))
 
     return rest + taken if reverse else taken + rest

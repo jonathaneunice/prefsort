@@ -34,6 +34,13 @@ def test_ignores_missing_and_repeated_preferences() -> None:
     assert prefsorted([1, 2, 3], [4, 2, 2]) == [2, 1, 3]
 
 
+def test_returns_input_values_not_equal_preferences() -> None:
+    result = prefsorted([1.0, 2, 3], [1])
+
+    assert result == [1, 2, 3]
+    assert type(result[0]) is float
+
+
 def test_accepts_any_input_iterable() -> None:
     values = (value for value in [3, 1, 2])
 
