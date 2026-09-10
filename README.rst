@@ -11,7 +11,7 @@ Installation
 
 .. code-block:: console
 
-    python -m pip install prefsort
+    python3 -m pip install prefsort
 
 Usage
 -----
@@ -25,10 +25,11 @@ Usage
     result = prefsorted(values, "c b")
     assert result == ["c", "b", "a", "d", "e"]
 
-Unlike ``sorted``, ``prefsorted`` does not reorder non-preferred values. Every occurrence of a
-preferred value is moved, and preferred values that are absent are ignored. The input is not mutated.
+Preferred items come out in preference order; everything else keeps its input
+order. With no preferences (``None`` or empty), ``prefsorted`` returns a new
+list in the original order.
 
-The string shorthand splits preferences on whitespace. Any other iterable can supply preferences directly:
+Pass preferences as a whitespace-delimited string or as any iterable:
 
 .. code-block:: python
 
@@ -40,6 +41,15 @@ Pass ``reverse=True`` to move preferred values to the end:
 
     result = prefsorted(values, "c b", reverse=True)
     assert result == ["a", "d", "e", "c", "b"]
+
+To impose a full order on the remaining items, run Python's stable ``sorted`` first,
+then ``prefsorted``:
+
+.. code-block:: python
+
+    sizes = ["L", "XS", "unknown", "big", "M", "S", "bigger", "XL"]
+    result = prefsorted(sorted(sizes), "XS S M L XL")
+    assert result == ["XS", "S", "M", "L", "XL", "big", "bigger", "unknown"]
 
 This is useful for ordering columns in dataframe-like objects without making pandas a runtime dependency:
 
