@@ -1,91 +1,22 @@
 # Residual review findings
 
 Recommendations from the September 2026 project review that have **not** been acted on.
-Everything else from that review is done: the 0.2.0 version bump and changelog entry, the
-index-based `prefsorted` fix and its regression test, the full Apache-2.0 `LICENSE` plus
-`NOTICE`, `filterwarnings = ["error"]`, the Beta development-status classifier, the removal of
-`AUTHORS.rst`, and the local `make publish` / `make publish-test` release path.
 
-Items are ordered by the value-to-effort ratio as I judged it, not by severity. None of them are
-release blockers for 0.2.0.
+Closed since the review: the 0.2.0 version bump and changelog entry, the index-based `prefsorted`
+fix and its regression test, the full Apache-2.0 `LICENSE` plus `NOTICE`,
+`filterwarnings = ["error"]`, the Beta development-status classifier, the removal of
+`AUTHORS.rst`, the local `make publish` / `make publish-test` release path, version moved into
+`pyproject.toml` and read back through `importlib.metadata`, doctest and README-example
+execution, the three missing behavior tests, the retirement of pre-commit in favor of
+`make lint`, CI concurrency and timeouts, `CHANGELOG.md` in the sdist, and the scale caveat in
+the docstring.
+
+Items are ordered by the value-to-effort ratio as I judged it, not by severity. None are release
+blockers for 0.2.0.
 
 ---
 
-## 1. Docstring examples are not executed by any configured run
-
-`src/prefsort/core.py` carries an `Examples:` block with two doctests. They pass, but only when
-invoked by hand — no configured command collects them, so nothing stops them from drifting out of
-sync with the code.
-
-The subtlety worth knowing: adding `--doctest-modules` to `addopts` alone accomplishes **nothing**
-here, because `testpaths = ["tests"]` confines collection to the test directory. I verified this —
-the run stayed at 12 tests. `src` has to join `testpaths`:
-
-```toml
-[tool.pytest.ini_options]
-addopts = ["--strict-config", "--strict-markers", "-ra", "--doctest-modules"]
-filterwarnings = ["error"]
-testpaths = ["src", "tests"]
-```
-
-With both changes the suite collects 13 items and coverage still reports 100%, so the change is
-free of side effects.
-
-## 2. README examples are unverified
-
-The README is the PyPI long description, so a stale example there is a public-facing bug. It
-contains five `.. code-block:: python` blocks whose `assert`s currently hold, but nothing checks
-them.
-
-Doctest-ifying the README would work, but it means rewriting the blocks into `pycon` form with
-`>>>` prompts and expected output, which reads worse than the current `assert` style. The
-alternative is to execute the blocks as they stand. I built and validated this version — it
-passes, and it is clean under `mypy --strict` and the project's Ruff rule set:
-
-```python
-"""Execute the Python examples embedded in README.rst."""
-
-import re
-import textwrap
-from pathlib import Path
-from typing import Any, ClassVar
-
-README = Path(__file__).parent.parent / "README.rst"
-
-CODE_BLOCK = re.compile(r"^\.\. code-block:: python\n\n((?:(?: {4}.*)?\n)+)", re.MULTILINE)
-
-
-class _FakeFrame:
-    """Stand-in for the DataFrame in the column-ordering example."""
-
-    columns: ClassVar[list[str]] = ["name", "size", "id"]
-
-    def reindex(self, columns: list[str]) -> list[str]:
-        return columns
-
-
-def readme_python_blocks() -> list[str]:
-    return [textwrap.dedent(match.group(1)) for match in CODE_BLOCK.finditer(README.read_text())]
-
-
-def test_readme_examples_execute() -> None:
-    blocks = readme_python_blocks()
-
-    assert len(blocks) == 5
-
-    namespace: dict[str, Any] = {"df": _FakeFrame()}
-    for block in blocks:
-        exec(block, namespace)
-```
-
-Two design notes. The blocks share one namespace because they build on each other — `values` is
-defined in the first and reused by later ones. And the `df.reindex(...)` example references a
-DataFrame that does not exist, hence the `_FakeFrame` stand-in; that keeps pandas out of the test
-dependencies, which matters for a package whose selling point is having no dependencies. The
-`assert len(blocks) == 5` line is deliberate: without it, a regex that silently stops matching
-would turn the test into a no-op that always passes.
-
-## 3. The string shorthand is still unsound in the type signature
+## 1. The string shorthand is still unsound in the type signature
 
 `prefsorted([1, 2, 3], "2")` type-checks today and silently does nothing at runtime, because the
 signature is `preferred: str | Iterable[T] | None` and the implementation does
@@ -108,8 +39,8 @@ def prefsorted(
 ) -> list[T]: ...
 ```
 
-**Be aware of the limit before adopting this.** I tested it against mypy strict, and it does not
-reject the bad call outright. In a bare statement, `prefsorted([1, 2, 3], "2")` resolves to
+**Be aware of the limit before adopting this.** Tested against mypy strict, it does not reject
+the bad call outright. In a bare statement, `prefsorted([1, 2, 3], "2")` resolves to
 `list[object]` rather than an error, because mypy is free to solve the type variable as `object`
 and both `list[int]` and `str` satisfy `Iterable[object]`. What the overloads do buy is an error
 as soon as the result reaches a typed context:
@@ -126,75 +57,65 @@ attribute, or passed onward — most real usage — and they let the `cast` go a
 complete fix, and a complete one is not available in the type system without giving up generator
 support for `preferred`. Worth doing, worth documenting the gap.
 
-## 4. pre-commit is configured but entirely inert
+This is the only remaining correctness-adjacent item.
 
-`.pre-commit-config.yaml` exists, and nothing runs it. There is no CI job invoking
-`pre-commit run --all-files`, and `.git/hooks/pre-commit` is not installed in this clone, so the
-config currently affects nobody.
+## 2. Release mechanics
 
-Three separate things to fix:
+Publishing is local, via `make publish`. Two gaps specific to that choice:
 
-- **Enforcement.** Either add a CI job that runs `pre-commit run --all-files`, or drop the config
-  and rely on `make lint`, which already covers the same ground plus mypy. Keeping an unenforced
-  config is the worst of the three options because it looks like a guarantee.
-- **Version drift.** The hook pins `ruff` at `v0.15.10` while the `quality` dependency group
-  allows any `ruff>=0.11`. They agree today — the installed Ruff is exactly 0.15.10 — but nothing
-  keeps them aligned, and divergence shows up as a formatting fight between the hook and
-  `make lint`.
-- **Coverage.** No hygiene hooks (`end-of-file-fixer`, `trailing-whitespace`, `check-yaml`,
-  `check-toml`) and no mypy hook, so the hooks are strictly weaker than `make lint`.
+- **No tag-versus-version check.** `git tag v0.2.0` and `version = "0.2.0"` in `pyproject.toml`
+  are coupled only by attention, and the clean-tree guard cannot catch a mismatch. A comparison
+  in the `publish` recipe would close the last hole in the release process. Note that this must
+  read `pyproject.toml` (or `importlib.metadata` after a reinstall) — there is no longer a
+  version constant in the source to compare against.
+- **No provenance attestations.** PEP 740 attestations, and the "Verified details" badge PyPI
+  shows for them, are only obtainable through Trusted Publishing from CI. This is the accepted
+  cost of publishing locally, recorded so the tradeoff is not forgotten rather than as a
+  recommendation to revisit.
 
-## 5. Test gaps that 100% coverage does not reveal
+One related wrinkle worth remembering rather than fixing: because `__version__` now comes from
+installed distribution metadata, a version bump is not visible to the running interpreter until
+the package is reinstalled. Builds and uploads read `pyproject.toml` directly and are unaffected.
 
-Branch coverage is at 100% and the gate is enforced, which makes this a good illustration that
-coverage measures executed lines rather than asserted behavior. Three documented behaviors have no
-test:
+## 3. Non-Python files have no whitespace or end-of-file check
 
-- **The new-list guarantee.** `test_no_preferences_preserve_order` asserts
-  `prefsorted(values, preferred) == values` but never that the result is a *different* list. The
-  README and the docstring both promise a newly allocated list, so `assert result is not values`
-  belongs there.
-- **`reverse=True` with duplicates.** Covered separately (duplicates, and reverse) but never
-  together, and the interaction is where the concatenation order could regress.
-- **A generator as `preferred` is consumed exactly once.** The implementation iterates
-  `preferred_items` a single time, which is what makes generator input work at all. Nothing pins
-  it, so a future refactor that loops twice would pass the suite while silently breaking
-  generators.
+Retiring pre-commit moved hygiene into Ruff, which is the right home for it but does not cover
+everything the old hooks nominally would have:
 
-## 6. CI and repository hygiene
+- **Covered.** `W` is now in the Ruff lint selection, so trailing whitespace (`W291`, `W293`) and
+  a missing final newline (`W292`) are errors in `make lint` and fixed by `make format` — for
+  Python files.
+- **Implicitly covered.** A malformed `pyproject.toml` fails immediately, because Ruff, pytest,
+  mypy, and setuptools all parse it. A malformed `.github/workflows/ci.yml` fails on GitHub's
+  side. Dedicated `check-toml` / `check-yaml` equivalents would be redundant.
+- **Not covered.** Trailing whitespace and missing final newlines in `README.rst`,
+  `CHANGELOG.md`, `Makefile`, `MANIFEST.in`, and this file. Nothing checks them. A small
+  `hygiene` make target over `git ls-files` could, if it ever proves to matter; for a repo this
+  size it is probably noise.
 
-Small, independent items:
+Also worth noting: with pre-commit gone there is no local git hook, so lint runs only when
+someone types `make lint` or when CI runs it on a pull request. That is the accepted tradeoff of
+the simpler setup, not an oversight.
 
-- **No Dependabot configuration** for GitHub Actions, so action versions age silently.
-- **No `concurrency` group** with `cancel-in-progress`, so superseded pushes keep burning runners
-  across the four-version matrix.
-- **No `timeout-minutes`** on either job; a hung job can occupy a runner for six hours.
+## 4. CI hygiene leftovers
+
+- **No Dependabot configuration** for GitHub Actions, so action versions age silently. This is
+  the one remaining item from the original CI list that has real upkeep value.
 - **Actions float on major tags** (`checkout@v6`, `setup-python@v6`, `upload-artifact@v5`). Fine
   as-is given `permissions: contents: read`; worth pinning to SHAs only if a publishing workflow
   ever gains `id-token: write`.
-- **The sdist omits `CHANGELOG.md`.** It ships `LICENSE`, `NOTICE`, `README.rst`, the package, and
-  `tests/`. Low impact, since the `Changelog` project URL is in the metadata.
 
-## 7. Release mechanics
+## 5. Documentation nit
 
-You chose local publishing via `make publish`, so these are the gaps specific to that path:
+**`reverse=True` is a naming trap.** It relocates preferred values to the end while keeping them
+in preference order, rather than reversing anything — different from what `sorted(reverse=True)`
+trains people to expect. The behavior is documented, but a sentence explicitly contrasting it
+with `sorted` would preempt the misreading.
 
-- **No tag-versus-`__version__` check.** `git tag v0.2.0` and `__version__ = "0.2.0"` are coupled
-  only by attention. The clean-tree guard cannot catch a mismatch. A one-line comparison in the
-  `publish` recipe would close the last hole in the release process, and it is the item I would
-  add first.
-- **No provenance attestations.** PEP 740 attestations, and the "Verified details" badge PyPI
-  shows for them, are only obtainable through Trusted Publishing from CI. This is the accepted
-  cost of publishing locally, recorded here so the tradeoff is not forgotten rather than as a
-  recommendation to revisit.
+## 6. Maintenance note on the README example test
 
-## 8. Documentation nits
-
-- **The scale caveat lives only in the README.** `prefsorted` is
-  O(`len(preferred)` × `len(seq)`) via repeated `list.index`/`list.pop`. The README says a few
-  dozen items is the intended scale; the docstring does not, and the docstring is what an IDE
-  shows.
-- **`reverse=True` is a naming trap.** It relocates preferred values to the end while keeping them
-  in preference order, rather than reversing anything — different from what `sorted(reverse=True)`
-  trains people to expect. Documented behavior, but a sentence contrasting it with `sorted` would
-  preempt the misreading.
+`tests/test_readme.py` asserts `len(blocks) == 5`. That guard is deliberate: without it, a regex
+that silently stopped matching would turn the test into a no-op that always passes. The cost is
+that adding or removing a `.. code-block:: python` in the README requires updating the count, and
+the failure message will not immediately say so. Not a defect, but the kind of thing that is
+annoying if you have forgotten why the assertion is there.

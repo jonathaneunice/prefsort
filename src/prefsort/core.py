@@ -28,6 +28,11 @@ def prefsorted(
     To impose a full order on the non-preferred items, run Python's stable
     ``sorted`` first, then ``prefsorted``.
 
+    This is a convenience function: simple and exact about preference order,
+    not tuned for large inputs. It rescans *seq* for each preferred value, so
+    cost grows as ``len(preferred) * len(seq)``. A few dozen items (DataFrame
+    columns, for example) is the intended scale.
+
     Args:
         seq: Values to reorder.
         preferred: Preferred values, in the order they should appear. Optionally
