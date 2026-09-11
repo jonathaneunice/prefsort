@@ -1,4 +1,6 @@
-"""Public interface for :mod:`prefsort`."""
+"""
+Public interface for :mod:`prefsort`.
+"""
 
 from .core import prefsorted
 from .version import __version__

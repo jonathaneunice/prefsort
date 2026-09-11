@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.2.1 - 2026-09-11
+
+- Switch the project README from reStructuredText to Markdown.
+
 ## 0.2.0 - 2026-09-10
 
 - Require Python 3.11 or later.

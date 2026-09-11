@@ -2,13 +2,14 @@ PYTHON ?= python3
 TWINE_USERNAME ?= __token__
 export TWINE_USERNAME
 
-.PHONY: help install format lint test build check publish publish-test require-clean-tree
+.PHONY: help install format lint test test-cov build check publish publish-test require-clean-tree
 
 help:
 	@echo "install       Install the project and development tools"
 	@echo "format        Apply Ruff lint fixes and formatting"
 	@echo "lint          Check lint, formatting, and types"
 	@echo "test          Run the test suite with coverage"
+	@echo "test-cov      Run tests and open an HTML coverage report"
 	@echo "build         Build the wheel and source distribution"
 	@echo "check         Run lint and test"
 	@echo "publish-test  Release the current version to TestPyPI"
@@ -26,9 +27,17 @@ lint:
 	$(PYTHON) -m ruff check .
 	$(PYTHON) -m ruff format --check .
 	$(PYTHON) -m mypy
+	check-yaml .github/workflows/*.yml .github/dependabot.yml
+	check-toml pyproject.toml
+	validate-pyproject pyproject.toml
+	actionlint -verbose
 
 test:
 	$(PYTHON) -m pytest --cov=prefsort --cov-report=term-missing
+
+test-cov:
+	$(PYTHON) -m pytest --cov=prefsort --cov-report=term-missing --cov-report=html
+	open htmlcov/index.html
 
 build:
 	rm -rf dist
