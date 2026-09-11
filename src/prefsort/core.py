@@ -23,9 +23,11 @@ def prefsorted(
     values are ignored, and a value listed more than once in *preferred* is a
     no-op after the first listing. The input iterable is not mutated.
 
-    A string *preferred* is split on whitespace. Use that shorthand when items
-    are strings that do not themselves contain spaces; otherwise pass an
-    iterable of values.
+    A string *preferred* is split on whitespace. The tokens are strings and
+    match by equality, so ``prefsorted([1, 2, 3], "2")`` searches for ``"2"``,
+    not ``2``, and does nothing. Use the shorthand for string items that do
+    not themselves contain spaces; otherwise pass an iterable of the same type
+    as *seq*.
 
     To impose a full order on the non-preferred items, run Python's stable
     ``sorted`` first, then ``prefsorted``.
