@@ -26,6 +26,10 @@ lint:
 	$(PYTHON) -m ruff check .
 	$(PYTHON) -m ruff format --check .
 	$(PYTHON) -m mypy
+	check-yaml .github/workflows/*.yml
+	check-toml pyproject.toml
+	validate-pyproject pyproject.toml
+	actionlint -verbose
 
 test:
 	$(PYTHON) -m pytest --cov=prefsort --cov-report=term-missing

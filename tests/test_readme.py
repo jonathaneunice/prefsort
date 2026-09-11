@@ -24,9 +24,13 @@ def readme_python_blocks() -> list[str]:
 
 
 def test_readme_examples_execute() -> None:
+    n_directives = sum(
+        1 for line in README.read_text().splitlines() if line.strip() == ".. code-block:: python"
+    )
     blocks = readme_python_blocks()
 
-    assert len(blocks) == 5
+    assert n_directives
+    assert len(blocks) == n_directives
 
     namespace: dict[str, Any] = {"df": _FakeFrame()}
     for block in blocks:

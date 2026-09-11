@@ -28,6 +28,9 @@ def prefsorted(
     To impose a full order on the non-preferred items, run Python's stable
     ``sorted`` first, then ``prefsorted``.
 
+    Unlike ``sorted(..., reverse=True)``, ``reverse`` relocates the preferred
+    group rather than reversing it. Preferred items stay in preference order.
+
     This is a convenience function: simple and exact about preference order,
     not tuned for large inputs. It rescans *seq* for each preferred value, so
     cost grows as ``len(preferred) * len(seq)``. A few dozen items (DataFrame
@@ -38,6 +41,7 @@ def prefsorted(
         preferred: Preferred values, in the order they should appear. Optionally
             a whitespace-delimited string.
         reverse: Move preferred values to the end instead of the beginning.
+            Preference order is not reversed.
 
     Returns:
         A newly allocated list containing all input values.

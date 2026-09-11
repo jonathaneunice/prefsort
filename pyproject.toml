@@ -40,8 +40,12 @@ test = [
     "pytest-cov>=5",
 ]
 quality = [
+    "actionlint-py>=1.7.7",
     "mypy>=1.15",
+    "pre-commit-hooks>=6",
     "ruff>=0.15.10",
+    "shellcheck-py>=0.10",
+    "validate-pyproject>=0.24",
 ]
 build = [
     "build>=1.2",

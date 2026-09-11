@@ -8,8 +8,9 @@ fix and its regression test, the full Apache-2.0 `LICENSE` plus `NOTICE`,
 `AUTHORS.rst`, the local `make publish` / `make publish-test` release path, version moved into
 `pyproject.toml` and read back through `importlib.metadata`, doctest and README-example
 execution, the three missing behavior tests, the retirement of pre-commit in favor of
-`make lint`, CI concurrency and timeouts, `CHANGELOG.md` in the sdist, and the scale caveat in
-the docstring.
+`make lint`, CI concurrency and timeouts, `CHANGELOG.md` in the sdist, the scale caveat in
+the docstring, the `reverse=True` contrast with `sorted`, and the README example test counting
+`.. code-block:: python` directives instead of a fixed block count.
 
 Items are ordered by the value-to-effort ratio as I judged it, not by severity. None are release
 blockers for 0.2.0.
@@ -79,23 +80,18 @@ the package is reinstalled. Builds and uploads read `pyproject.toml` directly an
 
 ## 3. Non-Python files have no whitespace or end-of-file check
 
-Retiring pre-commit moved hygiene into Ruff, which is the right home for it but does not cover
-everything the old hooks nominally would have:
+YAML and TOML syntax, `pyproject.toml` schema, and GitHub Actions workflows are now checked by
+`make lint` (`check-yaml`, `check-toml`, `validate-pyproject`, `actionlint`). Trailing whitespace
+and a missing final newline in Python files are errors via Ruff `W`.
 
-- **Covered.** `W` is now in the Ruff lint selection, so trailing whitespace (`W291`, `W293`) and
-  a missing final newline (`W292`) are errors in `make lint` and fixed by `make format` — for
-  Python files.
-- **Implicitly covered.** A malformed `pyproject.toml` fails immediately, because Ruff, pytest,
-  mypy, and setuptools all parse it. A malformed `.github/workflows/ci.yml` fails on GitHub's
-  side. Dedicated `check-toml` / `check-yaml` equivalents would be redundant.
-- **Not covered.** Trailing whitespace and missing final newlines in `README.rst`,
-  `CHANGELOG.md`, `Makefile`, `MANIFEST.in`, and this file. Nothing checks them. A small
-  `hygiene` make target over `git ls-files` could, if it ever proves to matter; for a repo this
-  size it is probably noise.
+What is still not covered: trailing whitespace and missing final newlines in `README.rst`,
+`CHANGELOG.md`, `Makefile`, `MANIFEST.in`, and this file. A small `hygiene` make target over
+`git ls-files` could, if it ever proves to matter; for a repo this size it is probably noise.
 
-Also worth noting: with pre-commit gone there is no local git hook, so lint runs only when
-someone types `make lint` or when CI runs it on a pull request. That is the accepted tradeoff of
-the simpler setup, not an oversight.
+`actionlint` comes from `actionlint-py`, a pip wrapper that downloads the Go binary at install
+time, and it finds `shellcheck` the same way via `shellcheck-py`. `make install` is enough
+locally and in CI. There is no local git hook, so lint still runs only when someone types
+`make lint` or when CI runs it on a pull request.
 
 ## 4. CI hygiene leftovers
 
@@ -104,18 +100,3 @@ the simpler setup, not an oversight.
 - **Actions float on major tags** (`checkout@v6`, `setup-python@v6`, `upload-artifact@v5`). Fine
   as-is given `permissions: contents: read`; worth pinning to SHAs only if a publishing workflow
   ever gains `id-token: write`.
-
-## 5. Documentation nit
-
-**`reverse=True` is a naming trap.** It relocates preferred values to the end while keeping them
-in preference order, rather than reversing anything — different from what `sorted(reverse=True)`
-trains people to expect. The behavior is documented, but a sentence explicitly contrasting it
-with `sorted` would preempt the misreading.
-
-## 6. Maintenance note on the README example test
-
-`tests/test_readme.py` asserts `len(blocks) == 5`. That guard is deliberate: without it, a regex
-that silently stopped matching would turn the test into a no-op that always passes. The cost is
-that adding or removing a `.. code-block:: python` in the README requires updating the count, and
-the failure message will not immediately say so. Not a defect, but the kind of thing that is
-annoying if you have forgotten why the assertion is there.

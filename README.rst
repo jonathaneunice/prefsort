@@ -35,7 +35,8 @@ Pass preferences as a whitespace-delimited string or as any iterable:
 
     assert prefsorted(values, ["c", "b"]) == ["c", "b", "a", "d", "e"]
 
-Pass ``reverse=True`` to move preferred values to the end:
+Pass ``reverse=True`` to move preferred values to the end. Unlike
+``sorted(..., reverse=True)``, preference order itself is not reversed:
 
 .. code-block:: python
 
