@@ -11,57 +11,29 @@ execution, the three missing behavior tests, the retirement of pre-commit in fav
 `make lint`, CI concurrency and timeouts, `CHANGELOG.md` in the sdist, the scale caveat in
 the docstring, the `reverse=True` contrast with `sorted`, the README example test counting
 code fences instead of a fixed block count, the switch of the landing README from RST to Markdown,
-and Dependabot for GitHub Actions.
+Dependabot for GitHub Actions, the string-shorthand docstring caveat, and non-Python
+whitespace left as constitution policy rather than a checker.
 
 Items are ordered by the value-to-effort ratio as I judged it, not by severity. None are release
 blockers for 0.2.0.
 
 ---
 
-## 1. The string shorthand is still unsound in the type signature
+## Rejected: overloads for the string shorthand
 
-`prefsorted([1, 2, 3], "2")` type-checks today and silently does nothing at runtime, because the
-signature is `preferred: str | Iterable[T] | None` and the implementation does
-`cast(Iterable[T], preferred.split())`. The cast is load-bearing and hides the mismatch.
+`preferred: str | Iterable[T] | None` looks unsound because
+`prefsorted([1, 2, 3], "2")` type-checks and does nothing. That call is a category error, not a
+hole in the types. A string *preferred* is split, then compared with `==`. Missing preferences
+are ignored, so the call searches for the string `"2"`, not the integer `2` — the same rule as
+`prefsorted([1, 2, 3], [4])`.
 
-Overloads narrow the string form to string sequences:
+Overloads that allow `str` only when *seq* is `Iterable[str]` encode a usage convention as if it
+were the contract. At runtime a string *preferred* is legal for any `T`, including mixed sequences
+where a token really matches. The overloads still accept the “bad” call as `list[object]` until
+the result is annotated, and a complete coupling of shorthand to string items is not expressible
+without giving up generator `preferred`. Do not add them. The docstring states the failure mode.
 
-```python
-@overload
-def prefsorted(
-    seq: Iterable[str],
-    preferred: str | Iterable[str] | None = ...,
-    reverse: bool = ...,
-) -> list[str]: ...
-@overload
-def prefsorted(
-    seq: Iterable[T],
-    preferred: Iterable[T] | None = ...,
-    reverse: bool = ...,
-) -> list[T]: ...
-```
-
-**Be aware of the limit before adopting this.** Tested against mypy strict, it does not reject
-the bad call outright. In a bare statement, `prefsorted([1, 2, 3], "2")` resolves to
-`list[object]` rather than an error, because mypy is free to solve the type variable as `object`
-and both `list[int]` and `str` satisfy `Iterable[object]`. What the overloads do buy is an error
-as soon as the result reaches a typed context:
-
-```python
-result: list[int] = prefsorted([1, 2, 3], "2")
-# error: Incompatible types in assignment (expression has type "list[str]", ...)
-# error: List item 0 has incompatible type "int"; expected "str"
-```
-
-The same assignment against today's signature produces no error at all. So the overloads convert
-a silent no-op into a diagnostic for any call whose result is annotated, assigned to a typed
-attribute, or passed onward — most real usage — and they let the `cast` go away. They are not a
-complete fix, and a complete one is not available in the type system without giving up generator
-support for `preferred`. Worth doing, worth documenting the gap.
-
-This is the only remaining correctness-adjacent item.
-
-## 2. Release mechanics
+## 1. Release mechanics
 
 Publishing is local, via `make publish`. Two gaps specific to that choice:
 
@@ -79,22 +51,7 @@ One related wrinkle worth remembering rather than fixing: because `__version__` 
 installed distribution metadata, a version bump is not visible to the running interpreter until
 the package is reinstalled. Builds and uploads read `pyproject.toml` directly and are unaffected.
 
-## 3. Non-Python files have no whitespace or end-of-file check
-
-YAML and TOML syntax, `pyproject.toml` schema, and GitHub Actions workflows are now checked by
-`make lint` (`check-yaml`, `check-toml`, `validate-pyproject`, `actionlint`). Trailing whitespace
-and a missing final newline in Python files are errors via Ruff `W`.
-
-What is still not covered: trailing whitespace and missing final newlines in `README.md`,
-`CHANGELOG.md`, `Makefile`, `MANIFEST.in`, and this file. A small `hygiene` make target over
-`git ls-files` could, if it ever proves to matter; for a repo this size it is probably noise.
-
-`actionlint` comes from `actionlint-py`, a pip wrapper that downloads the Go binary at install
-time, and it finds `shellcheck` the same way via `shellcheck-py`. `make install` is enough
-locally and in CI. There is no local git hook, so lint still runs only when someone types
-`make lint` or when CI runs it on a pull request.
-
-## 4. CI hygiene leftovers
+## 2. CI hygiene leftovers
 
 - **Actions float on major tags** (`checkout@v6`, `setup-python@v6`, `upload-artifact@v6`). Fine
   as-is given `permissions: contents: read`; worth pinning to SHAs only if a publishing workflow
