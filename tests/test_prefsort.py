@@ -1,4 +1,6 @@
-"""Tests for the public :func:`prefsort.prefsorted` API."""
+"""
+Tests for the public :func:`prefsort.prefsorted` API.
+"""
 
 from collections.abc import Iterable
 

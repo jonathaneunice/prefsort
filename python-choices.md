@@ -7,9 +7,10 @@ Worked example throughout: **prefsort** (a small typed library, Apache-2.0, Pyth
 ## How to apply
 
 1. Copy this file into the target repo as `python-choices.md`.
-2. Fill **Identity** from the target project. Do not invent a new name, license, or README format.
+2. Fill **Identity** from the target project. Do not invent a new name or license. Convert a landing `README.rst` to `README.md`; do not keep both.
 3. Apply every other section as written. Where the target cannot comply yet, record the gap in `residual.md` (see [Working leftovers](#working-leftovers)) rather than quietly weakening the rule.
 4. Do not resurrect the [retired stack](#retired-on-purpose).
+5. These are defaults. The user may request a variance or exception which is fine. If so, add an Exceptions section at the end of this document with exceptions noted and the date recorded in YYYY-MM-DD format. 
 
 ---
 
@@ -32,8 +33,8 @@ Replace bracketed tokens. prefsort’s values are the defaults when the target h
 ## Language and runtime
 
 - Python 3 only. `[MIN_PYTHON]` is **3.11**. Support every CPython minor from there through `[CURRENT_PYTHON]`.
-- Claim **CPython only** (`Programming Language :: Python :: Implementation :: CPython`). Do not add PyPy, universal wheels, or a 2/3 compatibility layer.
-- Write 3.11 idioms: `X | Y` unions, `list[T]`, `TypeVar`, no `from __future__ import annotations`.
+- Claim **CPython only** (`Programming Language :: Python :: Implementation :: CPython`). Do not add PyPy, universal wheels, or a 2/3 compatibility layer unless spefically requested. 
+- Write modern Python 3.11 idioms: `X | Y` unions, and built-in generics such as `list[T]`, `TypeVar`. Use `from __future__ import annotations` where deferred annotations are useful (Python 3.11–3.13); don't add it mechanically.
 - Import abstract containers from `collections.abc`, not `typing`.
 
 ---
@@ -44,7 +45,7 @@ Replace bracketed tokens. prefsort’s values are the defaults when the target h
 [PROJECT]/
   pyproject.toml          # only config file for packaging and tools
   Makefile                # only documented command interface
-  README.rst
+  README.md
   CHANGELOG.md
   LICENSE
   NOTICE                  # when [LICENSE_SPDX] is Apache-2.0
@@ -63,7 +64,7 @@ Replace bracketed tokens. prefsort’s values are the defaults when the target h
 
 - **src layout.** Keeps an editable install honest: tests and `python [PROJECT]/...` cannot accidentally import the tree instead of the package.
 - Tests live in `tests/`, not `test/`.
-- No `docs/` Sphinx tree for a library whose README, docstrings, and changelog already are the documentation.
+- No `docs/` Sphinx tree for a library whose README, docstrings, and changelog already are the documentation. Use `docs/` however if present or requested.
 
 ---
 
@@ -80,14 +81,14 @@ build-backend = "setuptools.build_meta"
 name = "[PROJECT]"
 version = "0.2.0"          # static; see Versioning
 description = "[DESCRIPTION]"
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=[MIN_PYTHON]"
 license = "[LICENSE_SPDX]"
 license-files = ["LICENSE"]  # plus "NOTICE" when Apache-2.0
 ```
 
 - **setuptools >= 77** for PEP 639 `license` / `license-files`. Do not use `License :: OSI Approved :: ...` classifiers.
-- Authors, keywords, and URLs live in `[project]`, not in `__init__.py`. Do not keep `__author__`, `__email__`, or an `AUTHORS` file.
+- Authors, keywords, and URLs live in `[project]`, not in `__init__.py`. Do not keep `__author__`, `__email__`, or create an `AUTHORS` file unless requested.
 - Required classifiers: `Programming Language :: Python :: 3 :: Only`, one classifier per supported minor, `Typing :: Typed`, plus audience/topic/status that match reality.
 - `[project.urls]`: Homepage, Changelog, Issues, Source.
 - `[tool.setuptools.packages.find] where = ["src"]`.
@@ -133,6 +134,13 @@ dev = [
 - Re-export the public API from `__init__.py` and name it in `__all__`.
 - Google-style `Args:` / `Returns:` on public callables. Put executable `Examples:` doctests on the public surface.
 - Prefer a small, exact contract over hidden performance claims. If scale or a sharp edge matters, say so in the docstring.
+- Docstrings put the text on its own lines between the quotes, even when the text is one sentence. Do not collapse to `"""comment"""`. This is easier to extend and to scan; Ruff format preserves the layout, and pydocstyle `D200` is not enabled because it would fight it.
+
+```python
+"""
+Public interface for :mod:`[PROJECT]`.
+"""
+```
 
 ---
 
@@ -180,13 +188,13 @@ source = ["[PROJECT]"]
 [tool.coverage.report]
 fail_under = 100
 show_missing = true
-skip_covered = true
+skip_covered = false
 ```
 
 - pytest only. Assertions, `parametrize` for variants, test names that state the contract (`test_does_not_mutate_input`).
-- **100% branch coverage** is the gate. `make test` always runs with coverage.
+- **100% branch coverage** is the gate. `make test` always runs with coverage. `skip_covered = false` so fully covered files still appear in the table; `skip_covered` only hides rows from the report, it does not skip tests.
 - `filterwarnings = ["error"]` so a new warning is a failed test, not log noise.
-- `--doctest-modules` plus `testpaths` including `src` executes docstring examples. README Python examples have their own test that **executes every** `.. code-block:: python` and asserts the extracted-block count equals the directive count, so a broken fence cannot silently skip a block.
+- `--doctest-modules` plus `testpaths` including `src` executes docstring examples. README Python examples have their own test that executes every fenced block tagged `python` and asserts the extracted-block count equals the opening-fence count, so a broken fence cannot silently skip a block. Ignore `console` and other non-Python fences.
 - Cover behavior at the public seam (return value, new list vs alias, iterator consumed once, no mutation). Do not test private helpers through a back door if the public function is the product.
 
 ---
@@ -241,9 +249,9 @@ concurrency:
 
 ## Documentation
 
-- **README.rst** is the PyPI long description and the human landing page. Keep an existing `.rst` or `.md`; greenfield default is RST.
-- **CHANGELOG.md** is Markdown, even when the README is RST. One dated heading per released version, newest first, user-visible bullets.
-- README structure: title, badges (PyPI version, Python versions, CI), short pitch with the Python requirement, install, usage with copy-pasteable examples, a short Development section that points at `make install` / `make check` / `make format` / `make help`.
+- **README.md** is the PyPI long description and the human landing page. Greenfield default is GitHub-flavored Markdown. Convert an existing `README.rst` rather than keeping both files.
+- **CHANGELOG.md** is Markdown too. One dated heading per released version, newest first, user-visible bullets.
+- README structure: title, GFM badges (PyPI version, Python versions, CI), short pitch with the Python requirement, install, usage with fenced `python` / `console` examples, a short Development section that points at `make install` / `make check` / `make format` / `make help`.
 - Do not document a releasing ritual in the README. The Makefile is the source of truth; README copy of it will rot.
 - Examples in README and public docstrings are tests (see [Tests](#tests)).
 - No `AUTHORS` file; authors are `[project.authors]`.
@@ -255,7 +263,7 @@ concurrency:
 - Keep the target’s existing license. If it has none, use **Apache-2.0**.
 - Ship the **full license text**, not a stub that only names the license.
 - PEP 639: `license = "[LICENSE_SPDX]"` and `license-files`. For Apache-2.0, `license-files = ["LICENSE", "NOTICE"]` and a short `NOTICE` with copyright.
-- Do not also list a license Trove classifier.
+- Do not also list a license Trove classifier. PEP 639 obsoleted that approach.
 
 ---
 
@@ -310,6 +318,7 @@ When modernizing an older library (cookiecutter-pypackage and similar), delete t
 | `CHANGES.yml` / ad-hoc history | `CHANGELOG.md` |
 | bumpversion | static `[project].version` |
 | `AUTHORS.rst` / `__author__` | `[project.authors]` |
+| `README.rst` as the landing page | `README.md` (GFM); tests extract fenced `python` blocks |
 | `test/` (singular), `tests_require` | `tests/` + pytest |
 | Dynamic version from a source attribute | `version` in `pyproject.toml` + `importlib.metadata` |
 | Stub / one-paragraph `LICENSE` | Full license text (+ `NOTICE` if Apache-2.0) |

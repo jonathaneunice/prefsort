@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "prefsort"
 version = "0.2.0"
 description = "Sort an iterable while preferring selected values"
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
@@ -85,7 +85,7 @@ source = ["prefsort"]
 [tool.coverage.report]
 fail_under = 100
 show_missing = true
-skip_covered = true
+skip_covered = false
 
 [tool.mypy]
 files = ["src/prefsort", "tests"]

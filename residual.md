@@ -9,8 +9,8 @@ fix and its regression test, the full Apache-2.0 `LICENSE` plus `NOTICE`,
 `pyproject.toml` and read back through `importlib.metadata`, doctest and README-example
 execution, the three missing behavior tests, the retirement of pre-commit in favor of
 `make lint`, CI concurrency and timeouts, `CHANGELOG.md` in the sdist, the scale caveat in
-the docstring, the `reverse=True` contrast with `sorted`, and the README example test counting
-`.. code-block:: python` directives instead of a fixed block count.
+the docstring, the `reverse=True` contrast with `sorted`, the README example test counting
+code fences instead of a fixed block count, and the switch of the landing README from RST to Markdown.
 
 Items are ordered by the value-to-effort ratio as I judged it, not by severity. None are release
 blockers for 0.2.0.
@@ -84,7 +84,7 @@ YAML and TOML syntax, `pyproject.toml` schema, and GitHub Actions workflows are 
 `make lint` (`check-yaml`, `check-toml`, `validate-pyproject`, `actionlint`). Trailing whitespace
 and a missing final newline in Python files are errors via Ruff `W`.
 
-What is still not covered: trailing whitespace and missing final newlines in `README.rst`,
+What is still not covered: trailing whitespace and missing final newlines in `README.md`,
 `CHANGELOG.md`, `Makefile`, `MANIFEST.in`, and this file. A small `hygiene` make target over
 `git ls-files` could, if it ever proves to matter; for a repo this size it is probably noise.
 

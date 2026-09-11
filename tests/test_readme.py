@@ -1,17 +1,22 @@
-"""Execute the Python examples embedded in README.rst."""
+"""
+Execute the Python examples embedded in README.md.
+"""
 
 import re
-import textwrap
 from pathlib import Path
 from typing import Any, ClassVar
 
-README = Path(__file__).parent.parent / "README.rst"
+README = Path(__file__).parent.parent / "README.md"
 
-CODE_BLOCK = re.compile(r"^\.\. code-block:: python\n\n((?:(?: {4}.*)?\n)+)", re.MULTILINE)
+# Opening fences of the form ```python, not ```console or other languages.
+PYTHON_FENCE = re.compile(r"^```python[ \t]*$", re.MULTILINE)
+PYTHON_BLOCK = re.compile(r"^```python[ \t]*\n(.*?)```", re.MULTILINE | re.DOTALL)
 
 
 class _FakeFrame:
-    """Stand-in for the DataFrame in the column-ordering example."""
+    """
+    Stand-in for the DataFrame in the column-ordering example.
+    """
 
     columns: ClassVar[list[str]] = ["name", "size", "id"]
 
@@ -20,17 +25,15 @@ class _FakeFrame:
 
 
 def readme_python_blocks() -> list[str]:
-    return [textwrap.dedent(match.group(1)) for match in CODE_BLOCK.finditer(README.read_text())]
+    return [match.group(1) for match in PYTHON_BLOCK.finditer(README.read_text())]
 
 
 def test_readme_examples_execute() -> None:
-    n_directives = sum(
-        1 for line in README.read_text().splitlines() if line.strip() == ".. code-block:: python"
-    )
+    n_fences = len(PYTHON_FENCE.findall(README.read_text()))
     blocks = readme_python_blocks()
 
-    assert n_directives
-    assert len(blocks) == n_directives
+    assert n_fences
+    assert len(blocks) == n_fences
 
     namespace: dict[str, Any] = {"df": _FakeFrame()}
     for block in blocks:

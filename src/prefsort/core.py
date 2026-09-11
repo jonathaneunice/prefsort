@@ -1,4 +1,6 @@
-"""Move preferred values to the front or back of a sequence."""
+"""
+Move preferred values to the front or back of a sequence.
+"""
 
 from collections.abc import Iterable
 from typing import TypeVar, cast
