@@ -26,13 +26,13 @@ Replace bracketed tokens. prefsort’s values are the defaults when the target h
 | `[GITHUB_OWNER]/[GITHUB_REPO]` | GitHub path; default branch `main` | `jonathaneunice/prefsort` |
 | `[LICENSE_SPDX]` | SPDX id; keep an existing license | `Apache-2.0` |
 | `[MIN_PYTHON]` | Oldest supported CPython | `3.11` |
-| `[CURRENT_PYTHON]` | Newest CPython in CI and classifiers | `3.14` |
+| `[CURRENT_PYTHON]` | Newest **released** CPython in classifiers and the build job | `3.14` |
 
 ---
 
 ## Language and runtime
 
-- Python 3 only. `[MIN_PYTHON]` is **3.11**. Support every CPython minor from there through `[CURRENT_PYTHON]`.
+- Python 3 only. `[MIN_PYTHON]` is **3.11**. Claim every released CPython minor from there through `[CURRENT_PYTHON]`. The test matrix may also include the next minor once it is in beta/RC; do not add that version’s Trove classifier or use it for the build job until it is released.
 - Claim **CPython only** (`Programming Language :: Python :: Implementation :: CPython`). Do not add PyPy, universal wheels, or a 2/3 compatibility layer unless spefically requested. 
 - Write modern Python 3.11 idioms: `X | Y` unions, and built-in generics such as `list[T]`, `TypeVar`. Use `from __future__ import annotations` where deferred annotations are useful (Python 3.11–3.13); don't add it mechanically.
 - Import abstract containers from `collections.abc`, not `typing`.
@@ -241,8 +241,8 @@ concurrency:
 
 - Least privilege: `contents: read` only.
 - Cancel superseded runs on the same ref. Job `timeout-minutes: 10`.
-- **test** job: matrix of every supported CPython (`[MIN_PYTHON]` … `[CURRENT_PYTHON]`), `fail-fast: false`, `ubuntu-latest`, `actions/checkout@v6`, `actions/setup-python@v6` with `cache: pip`. Then the same commands as a human: `make install`, `make lint`, `make test`.
-- **build** job: `[CURRENT_PYTHON]` only. Install the `build` group, `make build`, upload `dist/` with `actions/upload-artifact@v5`.
+- **test** job: matrix of every supported CPython (`[MIN_PYTHON]` … `[CURRENT_PYTHON]`), plus the next minor in beta/RC when one exists (`3.15` today). `fail-fast: false`, `ubuntu-latest`, `actions/checkout@v6`, `actions/setup-python@v6` with `cache: pip` and `allow-prereleases: true` so the unreleased cell installs. Then the same commands as a human: `make install`, `make lint`, `make test`.
+- **build** job: `[CURRENT_PYTHON]` only (the latest *release*, not an RC). Install the `build` group, `make build`, upload `dist/` with `actions/upload-artifact@v5`.
 - Float Actions on major tags (`@v6`, `@v5`). CI must use the Makefile targets so local and CI cannot drift.
 
 ---
