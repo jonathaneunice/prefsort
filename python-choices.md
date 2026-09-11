@@ -149,7 +149,7 @@ quote-style = "double"
 
 - **108 columns**, double quotes, Ruff format (Black-compatible). Do not add Black, isort, or flake8 beside Ruff.
 - Lint select is this set, not the kitchen sink. mypy owns annotations; do not enable Ruff `ANN`.
-- `W` covers trailing whitespace and a missing final newline in Python. That is enough; do not add a second whitespace tool for Python.
+- `W` covers trailing whitespace and a missing final newline in Python. That is enough; do not add a second whitespace tool for Python, or a checker for other tracked text.
 - `make lint` also runs:
   - `check-yaml .github/workflows/*.yml .github/dependabot.yml`
   - `check-toml pyproject.toml`
@@ -287,6 +287,8 @@ Packaging metadata is the source of truth; a second `__version__ = "…"` in sou
 - `.DS_Store`, `.python-version`
 
 Do not ignore `.github`. Do not commit `.python-version`: a local pin is not project policy; the CI matrix is. Do not add `.editorconfig` unless something other than Ruff needs it.
+
+When editing tracked text that Ruff does not see, strip trailing whitespace and end the file with a newline. Do not add a checker or `.editorconfig` for that.
 
 ---
 

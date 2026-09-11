@@ -11,7 +11,8 @@ execution, the three missing behavior tests, the retirement of pre-commit in fav
 `make lint`, CI concurrency and timeouts, `CHANGELOG.md` in the sdist, the scale caveat in
 the docstring, the `reverse=True` contrast with `sorted`, the README example test counting
 code fences instead of a fixed block count, the switch of the landing README from RST to Markdown,
-Dependabot for GitHub Actions, and the string-shorthand docstring caveat.
+Dependabot for GitHub Actions, the string-shorthand docstring caveat, and non-Python
+whitespace left as constitution policy rather than a checker.
 
 Items are ordered by the value-to-effort ratio as I judged it, not by severity. None are release
 blockers for 0.2.0.
@@ -50,22 +51,7 @@ One related wrinkle worth remembering rather than fixing: because `__version__` 
 installed distribution metadata, a version bump is not visible to the running interpreter until
 the package is reinstalled. Builds and uploads read `pyproject.toml` directly and are unaffected.
 
-## 2. Non-Python files have no whitespace or end-of-file check
-
-YAML and TOML syntax, `pyproject.toml` schema, and GitHub Actions workflows are now checked by
-`make lint` (`check-yaml`, `check-toml`, `validate-pyproject`, `actionlint`). Trailing whitespace
-and a missing final newline in Python files are errors via Ruff `W`.
-
-What is still not covered: trailing whitespace and missing final newlines in `README.md`,
-`CHANGELOG.md`, `Makefile`, `MANIFEST.in`, and this file. A small `hygiene` make target over
-`git ls-files` could, if it ever proves to matter; for a repo this size it is probably noise.
-
-`actionlint` comes from `actionlint-py`, a pip wrapper that downloads the Go binary at install
-time, and it finds `shellcheck` the same way via `shellcheck-py`. `make install` is enough
-locally and in CI. There is no local git hook, so lint still runs only when someone types
-`make lint` or when CI runs it on a pull request.
-
-## 3. CI hygiene leftovers
+## 2. CI hygiene leftovers
 
 - **Actions float on major tags** (`checkout@v6`, `setup-python@v6`, `upload-artifact@v6`). Fine
   as-is given `permissions: contents: read`; worth pinning to SHAs only if a publishing workflow
