@@ -10,7 +10,8 @@ fix and its regression test, the full Apache-2.0 `LICENSE` plus `NOTICE`,
 execution, the three missing behavior tests, the retirement of pre-commit in favor of
 `make lint`, CI concurrency and timeouts, `CHANGELOG.md` in the sdist, the scale caveat in
 the docstring, the `reverse=True` contrast with `sorted`, the README example test counting
-code fences instead of a fixed block count, and the switch of the landing README from RST to Markdown.
+code fences instead of a fixed block count, the switch of the landing README from RST to Markdown,
+and Dependabot for GitHub Actions.
 
 Items are ordered by the value-to-effort ratio as I judged it, not by severity. None are release
 blockers for 0.2.0.
@@ -95,8 +96,6 @@ locally and in CI. There is no local git hook, so lint still runs only when some
 
 ## 4. CI hygiene leftovers
 
-- **No Dependabot configuration** for GitHub Actions, so action versions age silently. This is
-  the one remaining item from the original CI list that has real upkeep value.
-- **Actions float on major tags** (`checkout@v6`, `setup-python@v6`, `upload-artifact@v5`). Fine
+- **Actions float on major tags** (`checkout@v6`, `setup-python@v6`, `upload-artifact@v6`). Fine
   as-is given `permissions: contents: read`; worth pinning to SHAs only if a publishing workflow
-  ever gains `id-token: write`.
+  ever gains `id-token: write`. Dependabot will open PRs for new majors.

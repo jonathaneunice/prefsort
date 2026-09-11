@@ -59,6 +59,7 @@ Replace bracketed tokens. prefsort’s values are the defaults when the target h
     ...
   tests/                  # pytest; no tests/__init__.py
   .github/workflows/ci.yml
+  .github/dependabot.yml
   .gitignore
 ```
 
@@ -164,7 +165,7 @@ quote-style = "double"
 - Lint select is this set, not the kitchen sink. mypy owns annotations; do not enable Ruff `ANN`.
 - `W` covers trailing whitespace and a missing final newline in Python. That is enough; do not add a second whitespace tool for Python.
 - `make lint` also runs:
-  - `check-yaml .github/workflows/*.yml`
+  - `check-yaml .github/workflows/*.yml .github/dependabot.yml`
   - `check-toml pyproject.toml`
   - `validate-pyproject pyproject.toml`
   - `actionlint -verbose`
@@ -244,6 +245,7 @@ concurrency:
 - **test** job: matrix of every supported CPython (`[MIN_PYTHON]` … `[CURRENT_PYTHON]`), plus the next minor in beta/RC when one exists (`3.15` today). `fail-fast: false`, `ubuntu-latest`, `actions/checkout@v6`, `actions/setup-python@v6` with `cache: pip` and `allow-prereleases: true` so the unreleased cell installs. Then the same commands as a human: `make install`, `make lint`, `make test`.
 - **build** job: `[CURRENT_PYTHON]` only (the latest *release*, not an RC). Install the `build` group, `make build`, upload `dist/` with `actions/upload-artifact@v6`.
 - Float Actions on major tags (`@v6`). CI must use the Makefile targets so local and CI cannot drift.
+- **Dependabot** keeps those tags from aging. Ship `.github/dependabot.yml` for the `github-actions` ecosystem on a weekly schedule. `actionlint` checks workflow syntax; it does not bump versions. Dependabot opens a PR when `checkout` / `setup-python` / `upload-artifact` (etc.) publish a new major; that PR runs CI because of `on: pull_request`. Do not add a pip ecosystem here unless the project wants the same treatment for `pyproject.toml` tools.
 
 ---
 

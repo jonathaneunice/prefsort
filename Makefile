@@ -27,7 +27,7 @@ lint:
 	$(PYTHON) -m ruff check .
 	$(PYTHON) -m ruff format --check .
 	$(PYTHON) -m mypy
-	check-yaml .github/workflows/*.yml
+	check-yaml .github/workflows/*.yml .github/dependabot.yml
 	check-toml pyproject.toml
 	validate-pyproject pyproject.toml
 	actionlint -verbose
