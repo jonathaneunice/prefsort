@@ -1,6 +1,10 @@
 # Changelog
 
-All notable changes to this project are documented in this file.
+Notable project changes are documented in this file.
+
+## 0.2.2 - 2026-09-11
+
+- Further improvements of CI and testing.
 
 ## 0.2.1 - 2026-09-11
 
