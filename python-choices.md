@@ -242,8 +242,8 @@ concurrency:
 - Least privilege: `contents: read` only.
 - Cancel superseded runs on the same ref. Job `timeout-minutes: 10`.
 - **test** job: matrix of every supported CPython (`[MIN_PYTHON]` … `[CURRENT_PYTHON]`), plus the next minor in beta/RC when one exists (`3.15` today). `fail-fast: false`, `ubuntu-latest`, `actions/checkout@v6`, `actions/setup-python@v6` with `cache: pip` and `allow-prereleases: true` so the unreleased cell installs. Then the same commands as a human: `make install`, `make lint`, `make test`.
-- **build** job: `[CURRENT_PYTHON]` only (the latest *release*, not an RC). Install the `build` group, `make build`, upload `dist/` with `actions/upload-artifact@v5`.
-- Float Actions on major tags (`@v6`, `@v5`). CI must use the Makefile targets so local and CI cannot drift.
+- **build** job: `[CURRENT_PYTHON]` only (the latest *release*, not an RC). Install the `build` group, `make build`, upload `dist/` with `actions/upload-artifact@v6`.
+- Float Actions on major tags (`@v6`). CI must use the Makefile targets so local and CI cannot drift.
 
 ---
 
