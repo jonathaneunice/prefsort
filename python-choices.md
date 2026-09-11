@@ -1,38 +1,22 @@
 # Python project constitution
 
-A portable set of defaults for modernizing a **publishable Python library** to 2026 tooling. Fill the identity table, then apply every later section as the default. Do not relitigate a choice that already has a one-line why.
+A portable set of defaults for modernizing a **publishable Python library** to 2026 tooling. Apply every later section as the default. Do not relitigate a choice that already has a one-line why.
 
-Worked example throughout: **prefsort** (a small typed library, Apache-2.0, Python 3.11+, GitHub, PyPI).
+Worked example throughout: **prefsort** (a small typed library, Apache-2.0, Python 3.11+, GitHub, PyPI). The living example is this repo; `pyproject.toml` is the source of truth for name, description, authors, license, and Python floor.
 
 ## How to apply
 
 1. Copy this file into the target repo as `python-choices.md`.
-2. Fill **Identity** from the target project. Do not invent a new name or license. Convert a landing `README.rst` to `README.md`; do not keep both.
-3. Apply every other section as written. Where the target cannot comply yet, record the gap in `residual.md` (see [Working leftovers](#working-leftovers)) rather than quietly weakening the rule.
+2. Leave bracketed tokens as holes, or substitute from the *target’s* `pyproject.toml` and git remote. Do not copy prefsort’s name, author, license, or description. Do not invent a new name or license. Convert a landing `README.rst` to `README.md`; do not keep both.
+3. Apply every section as written. Where the target cannot comply yet, record the gap in `residual.md` (see [Working leftovers](#working-leftovers)) rather than quietly weakening the rule.
 4. Do not resurrect the [retired stack](#retired-on-purpose).
-5. These are defaults. The user may request a variance or exception which is fine. If so, add an Exceptions section at the end of this document with exceptions noted and the date recorded in YYYY-MM-DD format. 
-
----
-
-## Identity
-
-Replace bracketed tokens. prefsort’s values are the defaults when the target has none.
-
-| Token | Meaning | prefsort |
-| --- | --- | --- |
-| `[PROJECT]` | Distribution and import name (keep them the same unless the target already splits them) | `prefsort` |
-| `[DESCRIPTION]` | One-line PyPI description | `Sort an iterable while preferring selected values` |
-| `[AUTHOR]` / `[EMAIL]` | `project.authors` | Jonathan Eunice / jonathan.eunice@gmail.com |
-| `[GITHUB_OWNER]/[GITHUB_REPO]` | GitHub path; default branch `main` | `jonathaneunice/prefsort` |
-| `[LICENSE_SPDX]` | SPDX id; keep an existing license | `Apache-2.0` |
-| `[MIN_PYTHON]` | Oldest supported CPython | `3.11` |
-| `[CURRENT_PYTHON]` | Newest **released** CPython in classifiers and the build job | `3.14` |
+5. These are defaults. The user may request a variance or exception which is fine. If so, add an Exceptions section at the end of this document with exceptions noted and the date recorded in YYYY-MM-DD format.
 
 ---
 
 ## Language and runtime
 
-- Python 3 only. `[MIN_PYTHON]` is **3.11**. Claim every released CPython minor from there through `[CURRENT_PYTHON]`. The test matrix may also include the next minor once it is in beta/RC; do not add that version’s Trove classifier or use it for the build job until it is released.
+- Python 3 only. `[MIN_PYTHON]` is **3.11**. `[CURRENT_PYTHON]` is the newest **released** CPython. Claim every released minor from there through that version. The test matrix may also include the next minor once it is in beta/RC; do not add that version’s Trove classifier or use it for the build job until it is released.
 - Claim **CPython only** (`Programming Language :: Python :: Implementation :: CPython`). Do not add PyPy, universal wheels, or a 2/3 compatibility layer unless spefically requested. 
 - Write modern Python 3.11 idioms: `X | Y` unions, and built-in generics such as `list[T]`, `TypeVar`. Use `from __future__ import annotations` where deferred annotations are useful (Python 3.11–3.13); don't add it mechanically.
 - Import abstract containers from `collections.abc`, not `typing`.
@@ -40,6 +24,8 @@ Replace bracketed tokens. prefsort’s values are the defaults when the target h
 ---
 
 ## Layout
+
+Snippets use `[PROJECT]` as a stand-in for the distribution and import name (keep those the same unless the target already splits them). Other bracketed tokens are holes to fill from the target’s `pyproject.toml` and git remote, not a second metadata registry.
 
 ```
 [PROJECT]/
